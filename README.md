@@ -49,3 +49,7 @@ sns-mcp-template/
 ## 📬 ライセンス
 
 MIT License
+
+## 📸 サンプル画面
+
+![UIサンプル](docs/screenshots/ui.png)

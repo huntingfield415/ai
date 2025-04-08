@@ -1,1 +1,37 @@
-<!-- MCPクライアントUI HTML (省略可) -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP投稿生成デモ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-4">
+  <div class="container">
+    <h1 class="mb-4">🧠 MCP 投稿支援デモ</h1>
+
+    <div class="mb-3">
+      <label for="clientSelect" class="form-label">クライアント選択</label>
+      <select class="form-select" id="clientSelect">
+        <option value="abc_corp">ABC株式会社</option>
+        <option value="xyz_inc">XYZ株式会社</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="userInput" class="form-label">投稿したい内容・方針など</label>
+      <textarea class="form-control" id="userInput" rows="4" placeholder="例：春のキャンペーン告知を作ってほしい"></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="generatePost()">投稿案を生成</button>
+
+    <div class="mt-4">
+      <h5>💬 投稿案</h5>
+      <pre id="outputArea" class="border rounded p-3 bg-light"></pre>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

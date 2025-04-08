@@ -3,35 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MCP投稿生成デモ</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>MCP 管理ダッシュボード</title>
   <link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f8fafc;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #1e3a8a;
+      color: white;
+      padding: 20px;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+    .menu-item {
+      margin: 15px 0;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      color: #93c5fd;
+    }
+    .main {
+      flex-grow: 1;
+      padding: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #1d4ed8;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+  </style>
 </head>
-<body class="p-4">
-  <div class="container">
-    <h1 class="mb-4">🧠 MCP 投稿支援デモ</h1>
-
-    <div class="mb-3">
-      <label for="clientSelect" class="form-label">クライアント選択</label>
-      <select class="form-select" id="clientSelect">
-        <option value="abc_corp">ABC株式会社</option>
-        <option value="xyz_inc">XYZ株式会社</option>
-      </select>
+<body>
+  <div class="sidebar">
+    <h2>MCP管理</h2>
+    <div class="menu-item">ダッシュボード</div>
+    <div class="menu-item">クライアント管理</div>
+    <div class="menu-item">投稿テンプレート</div>
+    <div class="menu-item">アクティビティ</div>
+    <div class="menu-item">設定</div>
+  </div>
+  <div class="main">
+    <div class="card">
+      <h3>投稿案生成</h3>
+      <div class="input-group">
+        <label for="client">クライアント選択</label>
+        <select id="client">
+          <option>ABC株式会社</option>
+          <option>XYZ合同会社</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="prompt">投稿指示</label>
+        <textarea id="prompt" rows="4" placeholder="例：春のキャンペーンを宣伝する投稿を作ってください"></textarea>
+      </div>
+      <button onclick="generatePost()">投稿案を生成</button>
     </div>
 
-    <div class="mb-3">
-      <label for="userInput" class="form-label">投稿したい内容・方針など</label>
-      <textarea class="form-control" id="userInput" rows="4" placeholder="例：春のキャンペーン告知を作ってほしい"></textarea>
-    </div>
-
-    <button class="btn btn-primary" onclick="generatePost()">投稿案を生成</button>
-
-    <div class="mt-4">
-      <h5>💬 投稿案</h5>
-      <pre id="outputArea" class="border rounded p-3 bg-light"></pre>
+    <div class="card">
+      <h3>投稿案プレビュー</h3>
+      <div id="result">（ここに投稿案が表示されます）</div>
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script>
+    function generatePost() {
+      const prompt = document.getElementById("prompt").value;
+      const client = document.getElementById("client").value;
+      document.getElementById("result").innerText = `（仮）${client}向け投稿案：\n${prompt}\n→ 生成結果をここに表示予定`;
+    }
+  </script>
 </body>
 </html>

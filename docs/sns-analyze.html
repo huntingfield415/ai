@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNS投稿解析 - MCPテンプレート化</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+  <script src="auth.js"></script>
+  <style>
+    body { display: flex; min-height: 100vh; }
+    #sidebar { width: 250px; background-color: #0d47a1; color: white; padding: 20px; }
+    #main-content { flex-grow: 1; padding: 40px; background-color: #f8f9fa; }
+    .form-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    #user-info { text-align: right; margin-bottom: 1rem; }
+    pre { background-color: #eee; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body onload="checkAuthAndShowUser('user-info')">
+  <div id="sidebar"></div>
+  <div id="main-content">
+    <div class="container">
+      <div id="user-info"></div>
+
+      <div class="form-section">
+        <h2>投稿解析とテンプレート生成</h2>
+        <div class="mb-3">
+          <label for="platformSelect" class="form-label">SNSプラットフォーム選択</label>
+          <select id="platformSelect" class="form-select">
+            <option value="instagram">Instagram</option>
+            <option value="x">X（旧Twitter）</option>
+            <option value="tiktok">TikTok</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="postSelect" class="form-label">投稿選択</label>
+          <select id="postSelect" class="form-select"></select>
+        </div>
+        <button class="btn btn-secondary mb-3" onclick="analyzePost()">解析してテンプレート化</button>
+
+        <div class="mb-3">
+          <label class="form-label">投稿内容</label>
+          <div id="postContent" class="p-3 bg-light border rounded">（投稿を選択してください）</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">生成されたYAMLテンプレート</label>
+          <pre id="yamlPreview">（ここにテンプレートが表示されます）</pre>
+        </div>
+
+        <div class="mb-3">
+          <label for="templateName" class="form-label">テンプレート名</label>
+          <input type="text" class="form-control" id="templateName" placeholder="例：春キャンペーン分析">
+        </div>
+        <button class="btn btn-success" onclick="saveTemplate()">テンプレートを保存</button>
+      </div>
+
+      <div class="form-section">
+        <h3>保存済みテンプレート一覧</h3>
+        <ul class="list-group" id="templateList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let postCache = [];
+    let currentYAML = '';
+
+    async function fetchPosts() {
+      const platform = document.getElementById('platformSelect').value;
+      const res = await authFetch(`/api/sns/posts/${platform}`);
+      const posts = await res.json();
+      postCache = posts;
+      const select = document.getElementById('postSelect');
+      select.innerHTML = '';
+      posts.forEach((post, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${post.caption?.substring(0, 40)}...`;
+        select.appendChild(option);
+      });
+    }
+
+    async function analyzePost() {
+      const selectedIndex = document.getElementById('postSelect').value;
+      const post = postCache[selectedIndex];
+      document.getElementById('postContent').textContent = post.caption || '(本文なし)';
+
+      const response = await authFetch('/api/mcp/yaml', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: post.caption })
+      });
+
+      const result = await response.json();
+      currentYAML = result.yaml || '# YAML変換失敗';
+      document.getElementById('yamlPreview').textContent = currentYAML;
+    }
+
+    async function saveTemplate() {
+      const name = document.getElementById('templateName').value;
+      const body = {
+        name,
+        content: currentYAML,
+        category: 'auto-generated',
+        tags: '自動解析'
+      };
+      const res = await authFetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        alert('テンプレート保存完了');
+        fetchTemplateList();
+      } else {
+        alert('保存に失敗しました');
+      }
+    }
+
+    async function fetchTemplateList() {
+      const res = await authFetch('/api/templates');
+      const templates = await res.json();
+      const list = document.getElementById('templateList');
+      list.innerHTML = '';
+      templates.forEach(t => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = `${t.name}（カテゴリ: ${t.category}）`;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById('platformSelect').addEventListener('change', fetchPosts);
+    window.onload = () => {
+      fetch('sidebar.html')
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('sidebar').innerHTML = html;
+        });
+      fetchPosts();
+      fetchTemplateList();
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

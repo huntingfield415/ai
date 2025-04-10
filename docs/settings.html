@@ -3,33 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>設定 - MCP</title>
+  <title>設定 - MCP管理</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+  <script src="auth.js"></script>
   <style>
-    body { display: flex; min-height: 100vh; }
-    #sidebar { width: 250px; background-color: #0d47a1; color: white; padding: 20px; }
-    #main-content { flex-grow: 1; padding: 40px; background-color: #f8f9fa; }
-    .form-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    body {
+      display: flex;
+      min-height: 100vh;
+    }
+    #sidebar {
+      width: 250px;
+      background-color: #0d47a1;
+      color: white;
+      padding: 20px;
+    }
+    #main-content {
+      flex-grow: 1;
+      padding: 40px;
+      background-color: #f8f9fa;
+    }
+    .form-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    #user-info {
+      text-align: right;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
-<body>
+<body onload="checkAuthAndShowUser('user-info')">
   <div id="sidebar"></div>
-
   <div id="main-content">
     <div class="container">
+      <div id="user-info"></div>
+
       <div class="form-section">
-        <h2>設定</h2>
-        <p>アプリの動作やAPIキーなど全体設定を管理します。</p>
+        <h2>カテゴリ管理</h2>
+        <form onsubmit="addCategory(event)">
+          <div class="input-group mb-3">
+            <input type="text" id="categoryInput" class="form-control" placeholder="新しいカテゴリ名" required>
+            <button class="btn btn-outline-primary" type="submit">追加</button>
+          </div>
+        </form>
+        <ul id="categoryList" class="list-group"></ul>
+      </div>
+
+      <div class="form-section">
+        <h2>タグ管理</h2>
+        <form onsubmit="addTag(event)">
+          <div class="input-group mb-3">
+            <input type="text" id="tagInput" class="form-control" placeholder="新しいタグ名" required>
+            <button class="btn btn-outline-success" type="submit">追加</button>
+          </div>
+        </form>
+        <ul id="tagList" class="list-group"></ul>
       </div>
     </div>
   </div>
 
   <script>
+    async function fetchCategories() {
+      const res = await authFetch('/api/categories');
+      const data = await res.json();
+      renderList(data, 'categoryList', 'category');
+    }
+
+    async function fetchTags() {
+      const res = await authFetch('/api/tags');
+      const data = await res.json();
+      renderList(data, 'tagList', 'tag');
+    }
+
+    function renderList(items, listId, type) {
+      const list = document.getElementById(listId);
+      list.innerHTML = '';
+      items.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+          ${item.name}
+          <button class="btn btn-sm btn-danger" onclick="deleteItem('${type}', ${item.id})">削除</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function addCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById('categoryInput').value;
+      await authFetch('/api/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name })
+      });
+      document.getElementById('categoryInput').value = '';
+      fetchCategories();
+    }
+
+    async function addTag(e) {
+      e.preventDefault();
+      const name = document.getElementById('tagInput').value;
+      await authFetch('/api/tags', {
+        method: 'POST',
+        body: JSON.stringify({ name })
+      });
+      document.getElementById('tagInput').value = '';
+      fetchTags();
+    }
+
+    async function deleteItem(type, id) {
+      const url = `/api/${type}s/${id}`;
+      await authFetch(url, { method: 'DELETE' });
+      if (type === 'category') fetchCategories();
+      else fetchTags();
+    }
+
+    fetchCategories();
+    fetchTags();
+
     fetch('sidebar.html')
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar').innerHTML = html;
       });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
